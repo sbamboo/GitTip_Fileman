@@ -1,5 +1,5 @@
 #Additional functions for fileman, needed for functionality.
-#falls under the included license.txt file
+#falls under the included license file
 
 #Set CurPath
 function s-cp {

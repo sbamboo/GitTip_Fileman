@@ -1,6 +1,6 @@
 #Fileman pwsh-core version
 #Fileman is made by Simon Kalmi Claesson
-#License information in "license.txt"
+#License information in "license"
 #
 
 #params
