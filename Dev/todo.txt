@@ -1,0 +1,11 @@
+Fix
+ - *returns to startdir after settings Load
+Add
+ - *Diagram_Mode (Format-List like title)
+ - *Dir-Note color option
+ - *Diagram_mode Color option
+ - Support for §def§ in theme options
+ - multiple options.Rcfg's
+ - generate builtIns.Rcfg file
+ - Open in explorer.exe option
+ - EnvVar support (check if in contains $env: is so iex test-path in and if true cd)
