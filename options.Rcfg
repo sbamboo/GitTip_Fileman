@@ -1,6 +1,7 @@
 pref -
 setpref /
 fm_editor Notepad.exe
+fm_mode_shash False
 fm_mode_simple False
 fm_mode_diagram False
 fm_autoLoadSettings True
@@ -15,3 +16,4 @@ theme_text Gray Black
 theme_console Gray Black
 theme_diagram Gray Black
 theme_dirNote DarkBlue Black
+theme_hash Magenta Black

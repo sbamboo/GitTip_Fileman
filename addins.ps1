@@ -95,6 +95,7 @@ function SaveOrgConfig {
   $script:org_pref = $pref
   $script:org_setpref = $setpref
   $script:org_fm_editor = $fm_editor
+  $script:org_fm_mode_shash = $fm_mode_shash
   $script:org_fm_mode_simple = $fm_mode_simple
   $script:org_fm_mode_diagram = $fm_mode_diagram
   $script:org_fm_autoLoadSettings = $fm_autoLoadSettings
@@ -110,12 +111,14 @@ function SaveOrgConfig {
   [array]$script:org_theme_console = $theme_console
   [array]$script:org_theme_diagram = $theme_diagram
   [array]$script:org_theme_dirNote = $theme_dirNote
+  [array]$script:org_theme_hash = $theme_hash
 
   #WriteToFile
   if (Test-Path $org_file) {del $org_file}
   SaveOrg pref
   SaveOrg setpref
   SaveOrg fm_editor
+  SaveOrg fm_mode_shash
   SaveOrg fm_mode_simple
   SaveOrg fm_mode_diagram
   SaveOrg fm_autoLoadSettings
@@ -130,6 +133,7 @@ function SaveOrgConfig {
   SaveOrg theme_console
   SaveOrg theme_diagram
   SaveOrg theme_dirNote
+  SaveOrg theme_hash
 }
 
 #Save Config
@@ -139,6 +143,7 @@ function SaveConfig {
   SaveNew pref
   SaveNew setpref
   SaveNew fm_editor
+  SaveNew fm_mode_shash
   SaveNew fm_mode_simple
   SaveNew fm_mode_diagram
   SaveNew fm_autoLoadSettings
@@ -153,6 +158,7 @@ function SaveConfig {
   SaveNew theme_console
   SaveNew theme_diagram
   SaveNew theme_dirNote
+  SaveNew theme_hash
 }
 #Load Config
 function LoadConfig($file) {

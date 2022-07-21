@@ -14,6 +14,7 @@ Param(
   $pref = "-"
   $setpref = "/"
   $fm_editor = "Notepad.exe"
+  $fm_mode_shash = "false"
   $fm_mode_simple = "false"
   $fm_mode_diagram = "false"
   $fm_autoLoadSettings = "false"
@@ -32,6 +33,7 @@ Param(
   [array]$theme_console = "$def_forecolor","$def_backcolor"
   [array]$theme_diagram = "$def_forecolor","$def_backcolor"
   [array]$theme_dirNote = "$def_forecolor","$def_backcolor"
+  [array]$theme_hash = "$def_forecolor","$def_backcolor"
 
   #Files
   $org_file = "orginal.Rcfg"
@@ -43,7 +45,7 @@ Param(
 
 #Internal
 $fm_author = "Simon Kalmi Claesson"
-$fm_version = "3.0_beta3"
+$fm_version = "3.0_beta4"
 $fm_description = "Fileman is a simple file manager written in Powershell"
 
 #HandleParam
@@ -90,6 +92,7 @@ while ($MainLoop -eq "$true") {
     $cfgCmd = "$setpref" + "opt"
     $hlpCmd = "$setpref" + "help"
     $infCmd = "$setpref" + "info"
+    $licCmd = "$setpref" + "lice"
     #WindowTitle
     $host.ui.rawui.windowtitle = "Fileman $fm_version"
     #TitleBar
@@ -118,10 +121,15 @@ while ($MainLoop -eq "$true") {
             $Fullname = $item.name
             $name = $Fullname.Split("."); $name = $name[0..($name.length-2)]
             $extension = $Fullname.Split("."); $extension = $extension[$extension.length-1]
+            if ($item.mode -notlike "*d*") {$hash = $(Get-FileHash $item.name).Hash} else {$hash = "                                                                "}
             #Folder
-            if ($item.mode -like "d") {
+            if ($item.mode -like "*d*") {
                 write-host -nonewline '<Dir>' -f $theme_dirNote[0] -b $theme_dirNote[1]
                 write-host -nonewline "   "
+                if ($fm_mode_shash -eq $true) {
+                  write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
+                  write-host -nonewline "   "
+                }
                 write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
                 write-host -nonewline "   "
                 write-host $item.name -f $theme_folder[0] -b $theme_folder[1]
@@ -131,6 +139,10 @@ while ($MainLoop -eq "$true") {
                 $size = FormatSize $item.length
                 write-host -nonewline $size -f $theme_size[0] -b $theme_size[1]
                 write-host -nonewline "   "
+                if ($fm_mode_shash -eq $true) {
+                  write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
+                  write-host -nonewline "   "
+                }
                 write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
                 write-host -nonewline "   "
                 write-host $item.name -f $theme_zip[0] -b $theme_zip[1]
@@ -140,6 +152,10 @@ while ($MainLoop -eq "$true") {
                 $size = FormatSize $item.length
                 write-host -nonewline $size -f $theme_size[0] -b $theme_size[1]
                 write-host -nonewline "   "
+                if ($fm_mode_shash -eq $true) {
+                  write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
+                  write-host -nonewline "   "
+                }
                 write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
                 write-host -nonewline "   "
                 write-host $item.name -f $theme_item[0] -b $theme_item[1]
@@ -241,6 +257,14 @@ while ($MainLoop -eq "$true") {
       if ("$in" -like "$check*") {
         $MainLoop = $false
       } 
+      #explorer
+      $check = "$pref" + "xp"
+      if ("$in" -like "$check*") {
+        if ($isWindows) {
+          $in = $in -replace "$check ",""
+          explorer $in
+        }
+      } 
       #Settings
       $check = "$setpref" + "opt"
       if ("$in" -like "$check*") {
@@ -265,13 +289,15 @@ while ($MainLoop -eq "$true") {
           write-MenuItem multi "  [0]  :  Console Theme (§)" '$theme_console'
           write-MenuItem multi "  [G]  :  Diagram Theme (§)" '$theme_diagram'
           write-MenuItem multi "  [H]  :  Dir-Note Theme (§)" '$theme_dirNote'
+          write-MenuItem multi "  [J]  :  Hash Theme (§)" '$theme_hash'
           write-MenuItem -text "                                      "
+          write-MenuItem singl "  [I]  :  Show Hashes (§)" '$fm_mode_shash' 
           write-MenuItem singl "  [A]  :  SimpleMode (§)" '$fm_mode_simple'
           write-MenuItem singl "  [B]  :  DiagramMode (§)" '$fm_mode_diagram'
           write-MenuItem -text "                                      "
           write-MenuItem singl "  [C]  :  AutoLoad Settings (§)" '$fm_autoloadsettings'
           write-MenuItem singl "  [D]  :  AutoSave LastWorkingDir (§)" '$fm_savelastDir'
-          write-MenuItem singl "  [F]  :  AutoLoad LastWorkDir (§)" '$fm_loadlastDir'
+          write-MenuItem singl "  [F]  :  AutoLoad LastWorkingDir (§)" '$fm_loadlastDir'
           write-MenuItem -text "                                      "
           write-MenuItem -text "  [S]  :  Save Settings"
           write-MenuItem -text "  [L]  :  Load Settings"
@@ -317,6 +343,15 @@ while ($MainLoop -eq "$true") {
                 if ("$in2" -eq "$false") {
                   $fm_loadlastDir = "$false"
                 }
+              }
+            }
+            #Show Hashes
+            if ("$setIN" -like "I*") {
+              $in2 = GetInput "Show Hashes: " $theme_text[0] $theme_text[1]
+              if ($in2 -ne "") {
+                $fm_mode_shash = $in2
+              } else {
+                $fm_mode_shash = $org_fm_mode_shash
               }
             }
             #SimpleMode
@@ -447,6 +482,15 @@ while ($MainLoop -eq "$true") {
                 [array]$theme_dirNote = $org_theme_dirNote
               }
             }
+            #HashTheme
+            if ("$setIN" -like "J*") {
+              $in2 = GetInput "Hash Theme: " $theme_text[0] $theme_text[1]
+              if ($in2 -ne "") {
+                [array]$theme_hash = ColorInputValidator "$in2" "$org_theme_hash"
+              } else {
+                [array]$theme_hash = $org_theme_hash
+              }
+            }
             #Esc
             if ("$setIN" -like "e*") {
               $keepSettings = "$false"
@@ -493,10 +537,30 @@ while ($MainLoop -eq "$true") {
         write-MenuItem Fmenu "zi  " "Creates a zip archive of file/folder" green blue "$pref"
         write-MenuItem Fmenu "uz  " "Unzips a zip archive" green blue "$pref"
         write-MenuItem Fmenu "ex  " "Exits fileman" green blue "$pref"
+        if ($isWindows) {write-MenuItem Fmenu "xp  " "Opens the file/folder in explorer.exe (win-only)" green blue "$pref"}
         write-MenuItem -text "                                      "
         write-MenuItem Fmenu "opt " "Opens Settings" green blue "$setpref"
         write-MenuItem Fmenu "info" "Shows info about fileman" green blue "$setpref"
         write-MenuItem Fmenu "help" "Shows this menu/help-menu" green blue "$setpref"
+        write-MenuItem Fmenu "lice" "Shows the fileman license" green blue "$setpref"
+        ShowBar
+        pause
+      }
+      #License
+      $check = "$setpref" + "lice"
+      if ("$in" -like "$check*") {
+        #HelpUI
+        cls
+        Write-MenuItem -text "Fileman License:"
+        ShowBar
+        $licensefile = "$PSScriptRoot\LICENSE"
+        if (Test-Path $licensefile) {
+          $licensefile_data = Get-Content $licensefile -raw
+          write-host $licensefile_data -f darkgreen
+        } else {
+          Write-host -nonewline "No license file could be found, please check your install. " -f red
+          Write-host "(The license can be found at the place you downloaded fileman)" -f darkred
+        }
         ShowBar
         pause
       }
