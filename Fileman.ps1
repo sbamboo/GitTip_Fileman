@@ -5,8 +5,13 @@
 
 #params
 Param(
-    #base params
+    #in param
     [Parameter(ValueFromPipeline=$true)]
+    [Alias("n")]
+    [Alias("in")]
+    [string]$inp,
+    
+    #base params
     [Alias("p")]
     [string]$path,
     [Alias("m")]
@@ -107,8 +112,9 @@ if ($options) {[string]$cli_cmdpass = "$setpref" + "opt"}
 if ($info) {[string]$cli_cmdpass = "$setpref" + "info"}
 if ($help) {[string]$cli_cmdpass = "$setpref" + "help"}
 if ($license) {[string]$cli_cmdpass = "$setpref" + "lice"}
-
+if ($inp) {$cli_cmdpass += " $inp"}
 if ($cli_cmdpass -ne "") {$climode = $true} else {$climode = $false}
+
 
 #Load additions
 $corePath = $PSScriptRoot
@@ -155,12 +161,14 @@ while ($MainLoop -eq "$true") {
     #WindowTitle
     $host.ui.rawui.windowtitle = "Fileman $fm_version"
     #TitleBar
-    $headstr = 'Write "' + "$cfgCmd" + '" for settings, "' + "$hlpCmd" + '" for help or "' + "$infCmd" + '" for for info.'
-    write-host "$headstr" -f $theme_text[0]-b $theme_text[1]
-    Showbar
-    if ($fm_mode_simple -eq "$false") {
-      write-host -nonewline "CurrentDir: " -f $theme_text[0] -b $theme_text[1]
-      write-host "$pwd`n" -f green -b $theme_text[1]
+    if ($cli_cmdpass) {} else {
+      $headstr = 'Write "' + "$cfgCmd" + '" for settings, "' + "$hlpCmd" + '" for help or "' + "$infCmd" + '" for for info.'
+      write-host "$headstr" -f $theme_text[0]-b $theme_text[1]
+      Showbar
+      if ($fm_mode_simple -eq "$false") {
+        write-host -nonewline "CurrentDir: " -f $theme_text[0] -b $theme_text[1]
+        write-host "$pwd`n" -f green -b $theme_text[1]
+      }
     }
     #DiagramMode
     if ($fm_mode_diagram -eq "true") {ShowDiagram}
@@ -325,7 +333,7 @@ while ($MainLoop -eq "$true") {
       if ("$in" -like "$check*") {
         if ($isWindows) {
           $in = $in -replace "$check ",""
-          explorer $in
+          explorer "$in"
         }
       } 
       #Settings
@@ -648,6 +656,7 @@ while ($MainLoop -eq "$true") {
       } else {
         #ChangeDir
         if ($mainLoop -eq "True") {
+          if ($climode) {exit}
           if ($in) {
             if (Test-path "$in") {
               cd $in
