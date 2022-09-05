@@ -5,8 +5,47 @@
 
 #params
 Param(
-    $path,
-    $mode
+    #base params
+    [Parameter(ValueFromPipeline=$true)]
+    [Alias("p")]
+    [string]$path,
+    [Alias("m")]
+    [string]$mode,
+
+    #cli usage params
+    [Alias("re")]
+    [switch]$remove,
+    [Alias("cp")]
+    [switch]$copy,
+    [Alias("mi")]
+    [switch]$makeitem,
+    [Alias("md")]
+    [switch]$makeDir,
+    [Alias("st")]
+    [switch]$startItem,
+    [Alias("ed")]
+    [switch]$editItem,
+    [Alias("rn")]
+    [switch]$rename,
+    [Alias("zi")]
+    [Alias("compress")]
+    [switch]$zip,
+    [Alias("uz")]
+    [Alias("extract")]
+    [switch]$unzip,
+    [Alias("xp")]
+    [switch]$explorer,
+
+    [Alias("opt")]
+    [switch]$options,
+    [Alias("hlp")]
+    [switch]$help,
+    [Alias("lice")]
+    [switch]$license,
+    [Alias("i")]
+    [Alias("inf")]
+    [switch]$info
+
 )
 
 #BuiltIn Settings
@@ -45,11 +84,31 @@ Param(
 
 #Internal
 $fm_author = "Simon Kalmi Claesson"
-$fm_version = "3.0_beta4"
+$fm_version = "3.0_beta5"
 $fm_description = "Fileman is a simple file manager written in Powershell"
 
 #HandleParam
+#base
 if ($mode -eq "simple") {$mode = "$true"} else {$mode = "$false"}
+#cliusage
+[string]$cli_cmdpass = ""
+if ($remove) {[string]$cli_cmdpass = "$pref" + "re"}
+if ($copy) {[string]$cli_cmdpass = "$pref" + "cp"}
+if ($makeItem) {[string]$cli_cmdpass = "$pref" + "mi"}
+if ($makeDir) {[string]$cli_cmdpass = "$pref" + "md"}
+if ($startItem) {[string]$cli_cmdpass = "$pref" + "st"}
+if ($editItem) {[string]$cli_cmdpass = "$pref" + "ed"}
+if ($rename) {[string]$cli_cmdpass = "$pref" + "rn"}
+if ($zip) {[string]$cli_cmdpass = "$pref" + "zi"}
+if ($unzip) {[string]$cli_cmdpass = "$pref" + "uz"}
+if ($explorer) {[string]$cli_cmdpass = "$pref" + "xp"}
+
+if ($options) {[string]$cli_cmdpass = "$setpref" + "opt"}
+if ($info) {[string]$cli_cmdpass = "$setpref" + "info"}
+if ($help) {[string]$cli_cmdpass = "$setpref" + "help"}
+if ($license) {[string]$cli_cmdpass = "$setpref" + "lice"}
+
+if ($cli_cmdpass -ne "") {$climode = $true} else {$climode = $false}
 
 #Load additions
 $corePath = $PSScriptRoot
@@ -109,64 +168,68 @@ while ($MainLoop -eq "$true") {
     $items = Get-ChildItem
 
     #Show Folders
-    if ($fm_mode_simple -eq "$true") {
-        #Simple Mode
-        foreach ($item in $items) {
-          write-host $item.name -f $theme_text[0]-b $theme_text[1]
-        }
+    if ($climode -eq $false) {
+      if ($fm_mode_simple -eq "$true") {
+          #Simple Mode
+          foreach ($item in $items) {
+            write-host $item.name -f $theme_text[0]-b $theme_text[1]
+          }
+      } else {
+          #Advanced Mode
+          foreach ($item in $items) {
+              #GetInfo
+              $Fullname = $item.name
+              $name = $Fullname.Split("."); $name = $name[0..($name.length-2)]
+              $extension = $Fullname.Split("."); $extension = $extension[$extension.length-1]
+              if ($item.mode -notlike "*d*") {$hash = $(Get-FileHash $item.name).Hash} else {$hash = "                                                                "}
+              #Folder
+              if ($item.mode -like "*d*") {
+                  write-host -nonewline '<Dir>' -f $theme_dirNote[0] -b $theme_dirNote[1]
+                  write-host -nonewline "   "
+                  if ($fm_mode_shash -eq $true) {
+                    write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
+                    write-host -nonewline "   "
+                  }
+                  write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
+                  write-host -nonewline "   "
+                  write-host $item.name -f $theme_folder[0] -b $theme_folder[1]
+
+              } elseif ($extension -like "*zip*") {
+                #Zip archive
+                  $size = FormatSize $item.length
+                  write-host -nonewline $size -f $theme_size[0] -b $theme_size[1]
+                  write-host -nonewline "   "
+                  if ($fm_mode_shash -eq $true) {
+                    write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
+                    write-host -nonewline "   "
+                  }
+                  write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
+                  write-host -nonewline "   "
+                  write-host $item.name -f $theme_zip[0] -b $theme_zip[1]
+
+              } else {
+                #Item
+                  $size = FormatSize $item.length
+                  write-host -nonewline $size -f $theme_size[0] -b $theme_size[1]
+                  write-host -nonewline "   "
+                  if ($fm_mode_shash -eq $true) {
+                    write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
+                    write-host -nonewline "   "
+                  }
+                  write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
+                  write-host -nonewline "   "
+                  write-host $item.name -f $theme_item[0] -b $theme_item[1]
+              }
+          }
+      }
+      #HandleInput
+        write-host -nonewline "[cd/op]: " -f $theme_text[0] -b $theme_text[1]
+        fm_Run-Callback
+        $inu = read-host
+        $in = "$inu"
     } else {
-        #Advanced Mode
-        foreach ($item in $items) {
-            #GetInfo
-            $Fullname = $item.name
-            $name = $Fullname.Split("."); $name = $name[0..($name.length-2)]
-            $extension = $Fullname.Split("."); $extension = $extension[$extension.length-1]
-            if ($item.mode -notlike "*d*") {$hash = $(Get-FileHash $item.name).Hash} else {$hash = "                                                                "}
-            #Folder
-            if ($item.mode -like "*d*") {
-                write-host -nonewline '<Dir>' -f $theme_dirNote[0] -b $theme_dirNote[1]
-                write-host -nonewline "   "
-                if ($fm_mode_shash -eq $true) {
-                  write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
-                  write-host -nonewline "   "
-                }
-                write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
-                write-host -nonewline "   "
-                write-host $item.name -f $theme_folder[0] -b $theme_folder[1]
-
-            } elseif ($extension -like "*zip*") {
-              #Zip archive
-                $size = FormatSize $item.length
-                write-host -nonewline $size -f $theme_size[0] -b $theme_size[1]
-                write-host -nonewline "   "
-                if ($fm_mode_shash -eq $true) {
-                  write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
-                  write-host -nonewline "   "
-                }
-                write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
-                write-host -nonewline "   "
-                write-host $item.name -f $theme_zip[0] -b $theme_zip[1]
-
-            } else {
-              #Item
-                $size = FormatSize $item.length
-                write-host -nonewline $size -f $theme_size[0] -b $theme_size[1]
-                write-host -nonewline "   "
-                if ($fm_mode_shash -eq $true) {
-                  write-host -nonewline "$hash" -f $theme_hash[0] -b $theme_hash[1]
-                  write-host -nonewline "   "
-                }
-                write-host -nonewline $item.LastWriteTime -f $theme_LWtime[0] -b $theme_LWtime[1]
-                write-host -nonewline "   "
-                write-host $item.name -f $theme_item[0] -b $theme_item[1]
-            }
-        }
+      $in = $cli_cmdpass
     }
-    #HandleInput
-      write-host -nonewline "[cd/op]: " -f $theme_text[0] -b $theme_text[1]
-      fm_Run-Callback
-      $inu = read-host
-      $in = "$inu"
     #Special Cases
       #Username
       if ("$in" -like "*~usr*") {
@@ -494,6 +557,7 @@ while ($MainLoop -eq "$true") {
             #Esc
             if ("$setIN" -like "e*") {
               $keepSettings = "$false"
+              if ($climode) {exit}
             }
             #SaveSettings
             if ("$setIN" -like "s*") {
@@ -544,7 +608,7 @@ while ($MainLoop -eq "$true") {
         write-MenuItem Fmenu "help" "Shows this menu/help-menu" green blue "$setpref"
         write-MenuItem Fmenu "lice" "Shows the fileman license" green blue "$setpref"
         ShowBar
-        pause
+        if ($climode) {exit} else {pause}
       }
       #License
       $check = "$setpref" + "lice"
@@ -562,7 +626,7 @@ while ($MainLoop -eq "$true") {
           Write-host "(The license can be found at the place you downloaded fileman)" -f darkred
         }
         ShowBar
-        pause
+        if ($climode) {exit} else {pause}
       }
       #Info
       $check = "$setpref" + "info"
@@ -577,7 +641,7 @@ while ($MainLoop -eq "$true") {
         Write-MenuItem -text "                                      "
         Write-MenuItem -text "Fileman_binPath: $corepath"
         ShowBar
-        pause
+        if ($climode) {exit} else {pause}
       }
       #EndFix
       if ("$in" -like "$setpref*") {
