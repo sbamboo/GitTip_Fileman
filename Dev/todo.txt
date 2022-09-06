@@ -17,3 +17,8 @@ Add
  - generate builtIns.Rcfg file
  - Open in explorer.exe option
  - EnvVar support (check if in contains $env: is so iex test-path in and if true cd)
+
+3.0b5
+Fix
+ - If last change date is a single digit day the filename gets one space before the others and missaligns.
+   (if $date -lt *smth* add a space)
